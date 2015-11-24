@@ -1,4 +1,4 @@
-package com.ahars.parser
+package TestCsvVsParquet
 
 import org.apache.spark.sql.{SaveMode, SQLContext}
 import org.apache.spark.{SparkContext, SparkConf}
