@@ -1,6 +1,6 @@
 package parsing
 
-import com.ahars.parsing.DateParsing
+import com.ahars.parsing.SparkParser
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{functions, Row, SQLContext}
@@ -9,7 +9,7 @@ import org.scalatest.{BeforeAndAfter, Matchers, FlatSpec}
 /**
   * Created by ahars on 24/11/2015.
   */
-class TestParsingDate extends FlatSpec with Matchers with BeforeAndAfter {
+class TestParser extends FlatSpec with Matchers with BeforeAndAfter {
 
   private var sc: SparkContext = _
   private var sqlContext: SQLContext = _
@@ -28,7 +28,7 @@ class TestParsingDate extends FlatSpec with Matchers with BeforeAndAfter {
   }
 
   "String parsed to date" should "return date value or NULL" in {
-    val parsing = new DateParsing()
+    val parsing = new SparkParser()
     val rdd = sc.parallelize(
       List("2015-02-03",
         "30301201",
@@ -56,6 +56,25 @@ class TestParsingDate extends FlatSpec with Matchers with BeforeAndAfter {
       Row(parsing.format1.parse("2019-03-31")),
       Row(null),
       Row(null),
+      Row(null)
+    ))
+  }
+
+  "String parsed to boolean" should "return boolean value or NULL" in {
+    val parsing = new SparkParser()
+    val rdd = sc.parallelize(
+      List("true",
+        "false",
+        "XXXXXX"
+      ))
+    val rows = rdd.map(fields => Row(fields))
+    val schema = StructType(Array(StructField("str", DataTypes.StringType)))
+    val df = sqlContext.createDataFrame(rows, schema)
+    val dd = df.withColumn("bool", functions.udf(parsing.parseBoolean _).apply(df("str")))
+
+    dd.select("bool").collect() should be (Array(
+      Row(true),
+      Row(false),
       Row(null)
     ))
   }
